@@ -1,0 +1,293 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.db.userDB.svcName }}-pvc"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.db.userDB.svcName }}
+  labels:
+    app: {{ .Values.db.userDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.db.userDB.svcName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.db.userDB.svcName }}
+    spec:
+      containers:
+      - name: postgres
+        image: {{ .Values.db.image }}
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: {{ .Values.db.userDB.name }}
+        - name: POSTGRES_USER
+          value: {{ .Values.db.user }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.db.password }}
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: "{{ .Values.db.userDB.svcName }}-pvc"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.db.userDB.svcName }}
+  labels:
+    app: {{ .Values.db.userDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app: {{ .Values.db.userDB.svcName }}
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.db.driverDB.svcName }}-pvc"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.db.driverDB.svcName }}
+  labels:
+    app: {{ .Values.db.driverDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.db.driverDB.svcName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.db.driverDB.svcName }}
+    spec:
+      containers:
+      - name: postgres
+        image: {{ .Values.db.image }}
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: {{ .Values.db.userDB.name }}
+        - name: POSTGRES_USER
+          value: {{ .Values.db.user }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.db.password }}
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: "{{ .Values.db.driverDB.svcName }}-pvc"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.db.driverDB.svcName }}
+  labels:
+    app: {{ .Values.db.driverDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app: {{ .Values.db.driverDB.svcName }}
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.db.bookingDB.svcName }}-pvc"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.db.bookingDB.svcName }}
+  labels:
+    app: {{ .Values.db.bookingDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.db.bookingDB.svcName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.db.bookingDB.svcName }}
+    spec:
+      containers:
+      - name: postgres
+        image: {{ .Values.db.image }}
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: {{ .Values.db.bookingDB.name }}
+        - name: POSTGRES_USER
+          value: {{ .Values.db.user }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.db.password }}
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: "{{ .Values.db.bookingDB.svcName }}-pvc"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.db.bookingDB.svcName }}
+  labels:
+    app: {{ .Values.db.bookingDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app: {{ .Values.db.bookingDB.svcName }}
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{ .Values.db.paymentDB.svcName }}-pvc"
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.db.paymentDB.svcName }}
+  labels:
+    app: {{ .Values.db.paymentDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.db.paymentDB.svcName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.db.paymentDB.svcName }}
+    spec:
+      containers:
+      - name: postgres
+        image: {{ .Values.db.image }}
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: {{ .Values.db.paymentDB.name }}
+        - name: POSTGRES_USER
+          value: {{ .Values.db.user }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.db.password }}
+        volumeMounts:
+        - mountPath: /var/lib/postgresql/data
+          name: postgres-storage
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: "{{ .Values.db.paymentDB.svcName }}-pvc"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.db.paymentDB.svcName }}
+  labels:
+    app: {{ .Values.db.paymentDB.svcName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  selector:
+    app: {{ .Values.db.paymentDB.svcName }}
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+---

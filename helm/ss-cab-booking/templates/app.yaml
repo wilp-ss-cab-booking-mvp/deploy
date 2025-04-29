@@ -1,0 +1,236 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.user.name }}
+  labels:
+    app: {{ .Values.app.user.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app: {{ .Values.app.user.name }}
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.driver.name }}
+  labels:
+    app: {{ .Values.app.driver.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app: {{ .Values.app.driver.name }}
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.payment.name }}
+  labels:
+    app: {{ .Values.app.payment.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app: {{ .Values.app.payment.name }}
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.booking.name }}
+  labels:
+    app: {{ .Values.app.booking.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app: {{ .Values.app.booking.name }}
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.user.name }}
+  labels:
+    app: {{ .Values.app.user.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.user.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.user.name }}
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Values.db.userDB.svcName }} 5432; do echo waiting for db; sleep 5; done']
+      containers:
+      - name: {{ .Values.app.user.name }}
+        image: {{ .Values.app.user.image }}
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        ports:
+        - containerPort: 5000
+        env:
+        - name: JWT_SECRET
+          value: {{ .Values.secret.jwtKey }}
+        - name: DB_URI
+          value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.userDB.svcName }}:5432/{{ .Values.db.userDB.name }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.driver.name }}
+  labels:
+    app: {{ .Values.app.driver.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.driver.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.driver.name }}
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Values.db.driverDB.svcName }} 5432; do echo waiting for db; sleep 5; done']
+      containers:
+      - name: {{ .Values.app.driver.name }}
+        image: {{ .Values.app.driver.image }}
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        ports:
+        - containerPort: 5000
+        env:
+        - name: JWT_SECRET
+          value: {{ .Values.secret.jwtKey }}
+        - name: DB_URI
+          value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.driverDB.svcName }}:5432/{{ .Values.db.driverDB.name }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.booking.name }}
+  labels:
+    app: {{ .Values.app.booking.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.booking.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.booking.name }}
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Values.db.bookingDB.svcName }} 5432; do echo waiting for db; sleep 5; done']
+      containers:
+      - name: {{ .Values.app.booking.name }}
+        image: {{ .Values.app.booking.image }}
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        ports:
+        - containerPort: 5000
+        env:
+        - name: JWT_SECRET
+          value: {{ .Values.secret.jwtKey }}
+        - name: DB_URI
+          value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.bookingDB.svcName }}:5432/{{ .Values.db.bookingDB.name }}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.payment.name }}
+  labels:
+    app: {{ .Values.app.payment.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.payment.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.payment.name }}
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Values.db.paymentDB.svcName }} 5432; do echo waiting for db; sleep 5; done']
+      containers:
+      - name: {{ .Values.app.payment.name }}
+        image: {{ .Values.app.payment.image }}
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        ports:
+        - containerPort: 5000
+        env:
+        - name: JWT_SECRET
+          value: {{ .Values.secret.jwtKey }}
+        - name: DB_URI
+          value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.paymentDB.svcName }}:5432/{{ .Values.db.paymentDB.name }}"
