@@ -1,0 +1,77 @@
+services:
+  user:
+    build: ./user-service
+    ports:
+      - "5001:5000"
+    env_file:
+      - ./user-service/.env
+    depends_on:
+      - user_db
+
+  user_db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: userdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+
+  driver:
+    build: ./driver-service
+    ports:
+      - "5002:5000"
+    env_file:
+      - ./driver-service/.env
+    depends_on:
+      - driver_db
+
+  driver_db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: driverdb1
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5434:5432"
+  
+  booking:
+    build: ./booking-service
+    ports:
+      - "5003:5000" #Flask API on port 5003
+    env_file:
+      - ./booking-service/.env
+    depends_on:
+      - booking_db
+
+  booking_db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: bookingdb1
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5435:5432" #PostgreSQL container on internal port 5432, mapped to 5435 on your system
+
+  payment:
+    build: ./payment-service
+    ports:
+      - "5004:5000" #payment (Flask app) runs on your machine at localhost:5004
+    env_file:
+      - ./payment-service/.env
+    depends_on: payment service will only start after both payment_db and booking service are healthy.
+      - payment_db
+      - booking  # Because payment service needs booking service for booking validation
+
+  payment_db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: paymentdb1
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5436:5432" #(PostgreSQL) runs on your machine at localhost:5436
+
+
