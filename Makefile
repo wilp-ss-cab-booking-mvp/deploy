@@ -46,8 +46,14 @@ setup:
 	@echo "Setting up metrics server"
 	kubectl --kubeconfig ./kubeconfig.yaml apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.5.0/components.yaml
 	kubectl --kubeconfig ./kubeconfig.yaml patch deployment metrics-server -n kube-system --patch "$$(cat $(PATCH_FILE))"
-	sleep 30
 	@echo "Metrics server setup successfully!"
+
+	@echo "Setting up ingress controller..."
+	kubectl --kubeconfig ./kubeconfig.yaml label node ss-cab-booking-mvp-control-plane ingress-ready=true
+	kubectl --kubeconfig ./kubeconfig.yaml apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+	@echo "Ingress controller setup successfully!"
+
+	sleep 60
 
 	@echo "Loading images into kind cluster..."
 	kind --name ss-cab-booking-mvp load image-archive images/user-service.tar
