@@ -22,15 +22,19 @@ app:
   user:
     name: "user-app"
     image: "user-service:latest"
+    host: "user.ss-cab-booking.local"
   driver:
     name: "driver-app"
     image: "driver-service:latest"
+    host: "driver.ss-cab-booking.local"
   booking:
     name: "booking-app"
     image: "booking-service:latest"
+    host: "booking.ss-cab-booking.local"
   payment:
     name: "payment-app"
     image: "payment-service:latest"
+    host: "payment.ss-cab-booking.local"
 
 resources:
   limits:

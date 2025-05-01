@@ -114,7 +114,7 @@ spec:
         - containerPort: 5432
         env:
         - name: POSTGRES_DB
-          value: {{ .Values.db.userDB.name }}
+          value: {{ .Values.db.driverDB.name }}
         - name: POSTGRES_USER
           value: {{ .Values.db.user }}
         - name: POSTGRES_PASSWORD

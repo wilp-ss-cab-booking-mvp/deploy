@@ -1,0 +1,55 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ss-cab-booking
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  labels:
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: {{ .Values.app.user.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.user.name }}
+            port:
+              number: 5000
+  - host: {{ .Values.app.driver.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.driver.name }}
+            port:
+              number: 5000
+  - host: {{ .Values.app.booking.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.booking.name }}
+            port:
+              number: 5000
+  - host: {{ .Values.app.payment.host }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.app.payment.name }}
+            port:
+              number: 5000
+---
