@@ -38,7 +38,7 @@ build:
 # setup will run a kind k8s cluster in the docker.
 setup:
 	@echo "Setting up kind cluster..."
-	kind create cluster --name ss-cab-booking-mvp
+	kind create cluster --name ss-cab-booking-mvp --config kind-config.yaml
 	@echo "Kind cluster setup successfully!"
 	kind get kubeconfig --name ss-cab-booking-mvp > kubeconfig.yaml
 	@echo "Kubeconfig saved to kubeconfig.yaml"
@@ -51,6 +51,10 @@ setup:
 	@echo "Setting up ingress controller..."
 	kubectl --kubeconfig ./kubeconfig.yaml label node ss-cab-booking-mvp-control-plane ingress-ready=true
 	kubectl --kubeconfig ./kubeconfig.yaml apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml
+	kubectl patch svc ingress-nginx-controller -n ingress-nginx \
+		--type='merge' \
+  		-p '{"spec": {"ports": [{"name": "http","nodePort": 30000,"port": 80,"protocol": "TCP","targetPort": 80}, {"name": "https","nodePort": 30001,"port": 443,"protocol": "TCP","targetPort": 443}]}}'
+
 	@echo "Ingress controller setup successfully!"
 
 	sleep 60
