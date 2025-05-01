@@ -1,72 +1,4 @@
 ---
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.app.user.name }}
-  labels:
-    app: {{ .Values.app.user.name }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
-spec:
-  selector:
-    app: {{ .Values.app.user.name }}
-  ports:
-  - protocol: TCP
-    port: 5000
-    targetPort: 5000
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.app.driver.name }}
-  labels:
-    app: {{ .Values.app.driver.name }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
-spec:
-  selector:
-    app: {{ .Values.app.driver.name }}
-  ports:
-  - protocol: TCP
-    port: 5000
-    targetPort: 5000
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.app.payment.name }}
-  labels:
-    app: {{ .Values.app.payment.name }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
-spec:
-  selector:
-    app: {{ .Values.app.payment.name }}
-  ports:
-  - protocol: TCP
-    port: 5000
-    targetPort: 5000
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ .Values.app.booking.name }}
-  labels:
-    app: {{ .Values.app.booking.name }}
-    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
-spec:
-  selector:
-    app: {{ .Values.app.booking.name }}
-  ports:
-  - protocol: TCP
-    port: 5000
-    targetPort: 5000
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -150,6 +82,8 @@ spec:
           value: {{ .Values.secret.jwtKey }}
         - name: DB_URI
           value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.driverDB.svcName }}:5432/{{ .Values.db.driverDB.name }}"
+        - name: BOOKING_SERVICE_URL
+          value: "http://{{ .Values.app.booking.name }}:5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -234,3 +168,5 @@ spec:
           value: {{ .Values.secret.jwtKey }}
         - name: DB_URI
           value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.paymentDB.svcName }}:5432/{{ .Values.db.paymentDB.name }}"
+        - name: BOOKING_SERVICE_URL
+          value: "http://{{ .Values.app.booking.name }}:5000"
