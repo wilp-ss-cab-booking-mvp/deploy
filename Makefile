@@ -7,19 +7,21 @@
 
 PATCH_FILE=./metrics-server-patch.yaml
 
+default: clean build setup deploye
+
 build:
 	@echo "Building user-service..."
 	git clone https://github.com/wilp-ss-cab-booking-mvp/user-service
-	cd user-service && docker build -t user-service .
+	cd user-service && docker build -t user-service -f ../manifests/Dockerfile.app .
 	@echo "Building driver-service..."
 	git clone https://github.com/wilp-ss-cab-booking-mvp/driver-service.git
-	cd driver-service && docker build -t driver-service .
+	cd driver-service && docker build -t driver-service -f ../manifests/Dockerfile.app .
 	@echo "Building booking-service..."
 	git clone https://github.com/wilp-ss-cab-booking-mvp/booking-service.git
-	cd booking-service && docker build -t booking-service .
+	cd booking-service && docker build -t booking-service -f ../manifests/Dockerfile.app .
 	@echo "Building payment-service..."
 	git clone https://github.com/wilp-ss-cab-booking-mvp/payment-service.git
-	cd payment-service && docker build -t payment-service .
+	cd payment-service && docker build -t payment-service -f ../manifests/Dockerfile.app .
 	@echo "Building postgres..."
 	cd manifests && docker build -t postgres:15 -f ./Dockerfile.postgres .
 	@echo "Building busybox..."
