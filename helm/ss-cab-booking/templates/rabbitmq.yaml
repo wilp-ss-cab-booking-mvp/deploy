@@ -1,0 +1,50 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.rabitMQ.appName }}
+  labels:
+    app: {{ .Values.rabitMQ.appName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.rabitMQ.appName }}
+  template:
+    metadata:
+      labels:
+        app:  {{ .Values.rabitMQ.appName }}
+    spec:
+      containers:
+        - name: {{ .Values.rabitMQ.appName }}
+          image: rabbitmq:3-management
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5672
+            - containerPort: 15672
+---
+# rabbitmq-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.rabitMQ.appName }}
+  labels:
+    app: {{ .Values.rabitMQ.appName }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  selector:
+    app:  {{ .Values.rabitMQ.appName }}
+  type: ClusterIP
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: 5672
+    - name: management
+      port: 15672
+      targetPort: 15672
+---

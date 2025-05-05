@@ -7,7 +7,7 @@
 
 PATCH_FILE=./metrics-server-patch.yaml
 
-default: clean build setup deploye
+default: clean build setup deploy
 
 build:
 	@echo "Building user-service..."
@@ -22,10 +22,15 @@ build:
 	@echo "Building payment-service..."
 	git clone https://github.com/wilp-ss-cab-booking-mvp/payment-service.git
 	cd payment-service && docker build -t payment-service -f ../manifests/Dockerfile.app .
+	@echo "Building notification-service..."
+	git clone https://github.com/wilp-ss-cab-booking-mvp/notification-service.git
+	cd notification-service && docker build -t notification-service -f ../manifests/Dockerfile.app .
 	@echo "Building postgres..."
 	cd manifests && docker build -t postgres:15 -f ./Dockerfile.postgres .
 	@echo "Building busybox..."
 	cd manifests && docker build -t busybox:latest -f ./Dockerfile.busybox .
+	@echo "Building rabbitmq..."
+	cd manifests && docker build -t rabbitmq:3-management -f ./Dockerfile.rmq .
 	@echo "All services built successfully!"
 
 	mkdir -p images
@@ -35,6 +40,8 @@ build:
 	docker save payment-service -o images/payment-service.tar
 	docker save postgres:15 -o images/postgres.tar
 	docker save busybox:latest -o images/busybox.tar
+	docker save rabbitmq:3-management -o images/rabbitmq.tar
+	docker save notification-service -o images/notification-service.tar
 	@echo "Images saved to images directory"
 
 # setup will run a kind k8s cluster in the docker.
@@ -68,6 +75,8 @@ setup:
 	kind --name ss-cab-booking-mvp load image-archive images/payment-service.tar
 	kind --name ss-cab-booking-mvp load image-archive images/postgres.tar
 	kind --name ss-cab-booking-mvp load image-archive images/busybox.tar
+	kind --name ss-cab-booking-mvp load image-archive images/rabbitmq.tar
+	kind --name ss-cab-booking-mvp load image-archive images/notification-service.tar
 	@echo "All images loaded into kind cluster successfully!"
 
 destroy:
@@ -80,7 +89,7 @@ deploy:
 
 clean:
 	@echo "Cleaning up..."
-	rm -rf user-service driver-service booking-service payment-service
+	rm -rf user-service driver-service booking-service payment-service notification-service
 	rm -rf images
 	@echo "All services cleaned up successfully!"
 	kind delete cluster --name ss-cab-booking-mvp

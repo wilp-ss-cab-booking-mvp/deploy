@@ -22,6 +22,9 @@ spec:
       - name: wait-for-db
         image: busybox
         command: ['sh', '-c', 'until nc -z {{ .Values.db.userDB.svcName }} 5432; do echo waiting for db; sleep 5; done']
+      - name: wait-for-mq
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Values.rabitMQ.appName }} 5672; do echo waiting for mq; sleep 5; done']
       containers:
       - name: {{ .Values.app.user.name }}
         image: {{ .Values.app.user.image }}
@@ -40,6 +43,8 @@ spec:
           value: {{ .Values.secret.jwtKey }}
         - name: DB_URI
           value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.userDB.svcName }}:5432/{{ .Values.db.userDB.name }}"
+        - name: BOOKING_SERVICE_URL
+          value: "http://{{ .Values.app.booking.name }}:5000"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -126,6 +131,14 @@ spec:
           value: {{ .Values.secret.jwtKey }}
         - name: DB_URI
           value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.bookingDB.svcName }}:5432/{{ .Values.db.bookingDB.name }}"
+        - name: DRIVER_SERVICE_URL
+          value: "http://{{ .Values.app.driver.name }}:5000"
+        - name: USER_SERVICE_URL
+          value: "http://{{ .Values.app.user.name }}:5000"
+        - name: RABBITMQ_HOST
+          value: {{ .Values.rabitMQ.appName }}
+        - name: RABBITMQ_QUEUE
+          value: {{ .Values.rabitMQ.queueName }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -170,3 +183,43 @@ spec:
           value: "postgresql://{{ .Values.db.user }}:{{ .Values.db.password }}@{{ .Values.db.paymentDB.svcName }}:5432/{{ .Values.db.paymentDB.name }}"
         - name: BOOKING_SERVICE_URL
           value: "http://{{ .Values.app.booking.name }}:5000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.notification.name }}
+  labels:
+    app: {{ .Values.app.notification.name }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: "{{ .Release.Name }}"
+    heritage: "{{ .Release.Service }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.notification.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.notification.name }}
+    spec:
+      initContainers:
+      - name: wait-for-mq
+        image: busybox
+        command: ['sh', '-c', 'until nc -z {{ .Values.rabitMQ.appName }} 5672; do echo waiting for mq; sleep 5; done']
+      containers:
+      - name: {{ .Values.app.notification.name }}
+        image: {{ .Values.app.notification.image }}
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: {{ .Values.resources.limits.cpu }}
+            memory: {{ .Values.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.resources.requests.cpu }}
+            memory: {{ .Values.resources.requests.memory }}
+        env:
+        - name: RABBITMQ_HOST
+          value: {{ .Values.rabitMQ.appName }}
+        - name: RABBITMQ_QUEUE
+          value: {{ .Values.rabitMQ.queueName }}

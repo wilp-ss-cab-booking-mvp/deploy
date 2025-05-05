@@ -35,6 +35,10 @@ app:
     name: "payment-app"
     image: "payment-service:latest"
     host: "payment.ss-cab-booking.local"
+  notification:
+    name: "notification-app"
+    image: "notification-service:latest"
+    host: "notification.ss-cab-booking.local"
 
 resources:
   limits:
@@ -43,3 +47,7 @@ resources:
   requests:
     cpu: "25m"
     memory: "128Mi"
+
+rabitMQ:
+  queueName: "booking_queue"
+  appName: "rabbitmq"
